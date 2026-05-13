@@ -1,0 +1,22 @@
+{
+  "name": "Artesanías - Tienda Online",
+  "short_name": "Artesanías",
+  "description": "Tienda online de artesanías colombianas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f4f0",
+  "theme_color": "#8b4513",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "lang": "es-CO",
+  "dir": "ltr"
+}
