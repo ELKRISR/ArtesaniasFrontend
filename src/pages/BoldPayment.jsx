@@ -86,6 +86,15 @@ function BoldPayment() {
 
       setBoldInstance(bold);
       setLoading(false);
+
+      // Intentar abrir el widget automáticamente al cargar la página
+      setTimeout(() => {
+        try {
+          bold.open();
+        } catch (openError) {
+          console.warn('No se pudo abrir el widget automáticamente:', openError);
+        }
+      }, 0);
     } catch (err) {
       console.error("Error inicializando pago Bold:", err);
       setError(err.response?.data?.message || "Error cargando la página de pago");
@@ -198,14 +207,20 @@ function BoldPayment() {
             >
               <div className="text-center">
                 <p className="text-gray-600 text-sm mb-4">
-                  Widget de pago seguro de Bold
+                  El widget Bold se abrirá automáticamente. Si no se abre, pulsa el botón.
                 </p>
                 <button
+                  type="button"
+                  data-bold-button="true"
+                  data-bold-publishable-key={import.meta.env.VITE_BOLD_PUBLIC_KEY}
+                  data-bold-amount={paymentData.amount.total_amount}
+                  data-bold-currency={paymentData.amount.currency}
+                  data-bold-reference={referenceId}
                   onClick={handleOpenWidget}
                   disabled={paymentLoading || !boldInstance}
-                  className="px-6 py-3 bg-cuero text-white rounded-lg hover:bg-cuero-dark transition font-medium disabled:bg-gray-500 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-[#0f172a] text-white rounded-lg hover:bg-[#111827] transition font-medium disabled:bg-gray-500 disabled:cursor-not-allowed"
                 >
-                  {paymentLoading ? "Procesando..." : "Ingresar datos de pago"}
+                  {paymentLoading ? "Procesando..." : "Pagar con Bold"}
                 </button>
               </div>
             </div>
@@ -215,7 +230,7 @@ function BoldPayment() {
               <button
                 onClick={handleOpenWidget}
                 disabled={paymentLoading || !boldInstance}
-                className="w-full px-6 py-3 bg-cuero text-white rounded-lg hover:bg-cuero-dark transition font-medium disabled:bg-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 bg-[#0f172a] text-white rounded-lg hover:bg-[#111827] transition font-medium disabled:bg-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {paymentLoading && <Spinner size="small" color="white" />}
                 {paymentLoading ? "Procesando..." : "💳 Ir al Pago"}

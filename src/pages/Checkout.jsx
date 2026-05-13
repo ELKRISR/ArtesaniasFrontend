@@ -170,7 +170,19 @@ function Checkout() {
       }
 
       const response = await api.post("/pedidos/bold-session", payload);
-      const { paymentUrl } = response.data?.data || response.data;
+      const { paymentUrl, referenceId } = response.data?.data || response.data;
+
+      if (formData.paymentMethod === "tarjeta") {
+        if (!referenceId) {
+          console.error("No se pudo obtener el referenceId de Bold:", response.data);
+          showToast("Error interno creando la sesión de pago", "error");
+          return;
+        }
+
+        showToast("Redirigiendo a Bold para completar el pago...", "success");
+        navigate(`/bold-payment/${referenceId}`);
+        return;
+      }
 
       if (!paymentUrl) {
         console.error("No se pudo obtener la URL de pago de Bold:", response.data);
@@ -179,8 +191,6 @@ function Checkout() {
       }
 
       showToast("Redirigiendo a Bold para completar el pago...", "success");
-
-      // Redirigir a la URL de pago de Bold
       window.location.href = paymentUrl;
 
     } catch (error) {
@@ -263,7 +273,11 @@ function Checkout() {
             className="w-full py-3 rounded-lg text-white transition font-sans bg-cuero hover:bg-cuero-dark disabled:bg-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading && <Spinner size="small" color="white" />}
-            {loading ? "Procesando..." : "Confirmar Pedido"}
+            {loading
+              ? "Procesando..."
+              : formData.paymentMethod === "tarjeta"
+              ? "Pagar con Bold"
+              : "Confirmar Pedido"}
           </button>
         </form>
       </div>

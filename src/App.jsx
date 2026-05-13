@@ -25,6 +25,7 @@ import Login from "./pages/Login";import Register from "./pages/Register";
 // ── Páginas Privadas ───────────────────────────────────────
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import BoldPayment from "./pages/BoldPayment";
 import Success from "./pages/Success";
 import MisPedidos from "./pages/MisPedidos";
 
@@ -76,6 +77,15 @@ function App() {
         element={
           <ProtectedRoute>
             <MainLayout><Checkout /></MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/bold-payment/:referenceId"
+        element={
+          <ProtectedRoute>
+            <MainLayout><BoldPayment /></MainLayout>
           </ProtectedRoute>
         }
       />
