@@ -45,7 +45,7 @@
  * @module services/api
  */
 
-import axios from 'axios';
+import axios from "axios";
 
 /* ── Instancia principal ────────────────────────────────────────────────── */
 
@@ -57,13 +57,15 @@ import axios from 'axios';
  * - `withCredentials`: true — permite enviar/recibir cookies cross-origin
  *   (necesario para la cookie httpOnly del refresh token).
  */
-const rawApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
-const apiUrl = rawApiUrl.replace(/\/+$/, '');
-const normalizedApiUrl = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
+const rawApiUrl =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? "http://localhost:10000/api" : "/api"); // ← cambiar a tu URL de desarrollo
+const apiUrl = rawApiUrl.replace(/\/+$/, "");
+const normalizedApiUrl = apiUrl.endsWith("/api") ? apiUrl : `${apiUrl}/api`;
 
 const api = axios.create({
-  baseURL:         normalizedApiUrl,
-  timeout:         10_000,
+  baseURL: normalizedApiUrl,
+  timeout: 10_000,
   withCredentials: true,
   // 🔒 Seguridad: No seguir redirecciones automáticas
   maxRedirects: 0,
@@ -71,14 +73,14 @@ const api = axios.create({
 
 const fetchCsrfToken = async () => {
   try {
-    const response = await api.get('/auth/csrf-token');
+    const response = await api.get("/auth/csrf-token");
     const csrfToken = response.data?.csrfToken;
     if (csrfToken) {
-      localStorage.setItem('csrfToken', csrfToken);
+      localStorage.setItem("csrfToken", csrfToken);
     }
     return csrfToken;
   } catch (error) {
-    console.warn('[CSRF] No se pudo obtener token CSRF:', error.message);
+    console.warn("[CSRF] No se pudo obtener token CSRF:", error.message);
     return null;
   }
 };
@@ -91,27 +93,29 @@ const fetchCsrfToken = async () => {
  * Patrones de URLs absolutas maliciosas que podrían causar SSRF
  */
 const SSRF_PATTERNS = [
-  /^https?:\/\//i,           // http:// o https://
-  /^\/\//,                    // // (protocol-relative URL)
-  /^[a-zA-Z]+:\/\//,         // otros protocolos (ftp://, file://, etc.)
-  /^\\\\/,                    // Windows UNC paths
-  /^\.\.\//,                  // Path traversal
+  /^https?:\/\//i, // http:// o https://
+  /^\/\//, // // (protocol-relative URL)
+  /^[a-zA-Z]+:\/\//, // otros protocolos (ftp://, file://, etc.)
+  /^\\\\/, // Windows UNC paths
+  /^\.\.\//, // Path traversal
 ];
 
 /**
  * Valida que un parámetro no sea una URL absoluta maliciosa
  * Previene ataques SSRF donde el usuario intenta redirigir a un servidor externo
- * 
+ *
  * @param {string} param - Parámetro a validar
  * @param {string} paramName - Nombre del parámetro (para logs)
  * @throws {Error} Si el parámetro parece una URL absoluta
  */
-const validatePathParam = (param, paramName = 'param') => {
-  if (!param || typeof param !== 'string') return;
-  
+const validatePathParam = (param, paramName = "param") => {
+  if (!param || typeof param !== "string") return;
+
   for (const pattern of SSRF_PATTERNS) {
     if (pattern.test(param)) {
-      console.warn(`[SSRF Prevention] Intento de SSRF detectado en parámetro '${paramName}': ${param.substring(0, 100)}`);
+      console.warn(
+        `[SSRF Prevention] Intento de SSRF detectado en parámetro '${paramName}': ${param.substring(0, 100)}`,
+      );
       throw new Error(`Parámetro inválido: ${paramName}`);
     }
   }
@@ -119,12 +123,12 @@ const validatePathParam = (param, paramName = 'param') => {
 
 /**
  * Sanitiza y codifica un parámetro para uso en URL
- * 
+ *
  * @param {string} param - Parámetro a sanitizar
  * @returns {string} Parámetro sanitizado
  */
 const sanitizeParam = (param) => {
-  if (!param) return '';
+  if (!param) return "";
   validatePathParam(param);
   return encodeURIComponent(String(param));
 };
@@ -147,7 +151,7 @@ let activeRequestCount = 0;
  */
 const notifyLoading = (loading) => {
   window.dispatchEvent(
-    new CustomEvent('globalLoading', { detail: { loading } })
+    new CustomEvent("globalLoading", { detail: { loading } }),
   );
 };
 
@@ -164,7 +168,7 @@ const notifyLoading = (loading) => {
  * @param {string} url - URL relativa de la petición (ej: "/auth/refresh").
  * @returns {boolean} true si la URL debe saltarse el auto-refresh.
  */
-const esRutaDeAuth = (url = '') => url.includes('/auth/');
+const esRutaDeAuth = (url = "") => url.includes("/auth/");
 
 /* ══════════════════════════════════════════════════════════════════════════
    INTERCEPTOR DE REQUEST
@@ -175,12 +179,15 @@ const esRutaDeAuth = (url = '') => url.includes('/auth/');
 api.interceptors.request.use(
   (config) => {
     /* ── 🔒 SSRF Prevention: Validar que la URL no sea absoluta ──────── */
-    if (config.url && typeof config.url === 'string') {
+    if (config.url && typeof config.url === "string") {
       // Detectar URLs absolutas maliciosas
       for (const pattern of SSRF_PATTERNS) {
         if (pattern.test(config.url)) {
-          console.error('[SSRF Prevention] Intento de usar URL absoluta:', config.url);
-          return Promise.reject(new Error('URL de petición inválida'));
+          console.error(
+            "[SSRF Prevention] Intento de usar URL absoluta:",
+            config.url,
+          );
+          return Promise.reject(new Error("URL de petición inválida"));
         }
       }
     }
@@ -192,16 +199,19 @@ api.interceptors.request.use(
     /* ── Adjuntar access token desde localStorage ────────────────────── */
     // El access token se guarda en localStorage por Login.jsx y AuthProvider.jsx.
     // El refresh token vive en una cookie httpOnly (no accesible desde JS).
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     /* ── Adjuntar token CSRF para endpoints de cookie-based auth ─────── */
-    if (config.url?.includes('/auth/refresh') || config.url?.includes('/auth/logout')) {
-      const csrfToken = localStorage.getItem('csrfToken');
+    if (
+      config.url?.includes("/auth/refresh") ||
+      config.url?.includes("/auth/logout")
+    ) {
+      const csrfToken = localStorage.getItem("csrfToken");
       if (csrfToken) {
-        config.headers['x-csrf-token'] = csrfToken;
+        config.headers["x-csrf-token"] = csrfToken;
       }
     }
 
@@ -212,7 +222,7 @@ api.interceptors.request.use(
     activeRequestCount = Math.max(0, activeRequestCount - 1);
     if (activeRequestCount === 0) notifyLoading(false);
     return Promise.reject(error);
-  }
+  },
 );
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -274,25 +284,25 @@ api.interceptors.response.use(
             Si /auth/refresh devuelve 401 → la sesión expiró completamente
             → redirigir a login, sin intentar refrescar el refresh.
     ─────────────────────────────────────────────────────────────────────── */
-    const es401        = error.response?.status === 401;
-    const noReintento  = !originalRequest?._retry;
-    const noEsAuth     = !esRutaDeAuth(originalRequest?.url);
+    const es401 = error.response?.status === 401;
+    const noReintento = !originalRequest?._retry;
+    const noEsAuth = !esRutaDeAuth(originalRequest?.url);
 
-    const isCsrfError = error.response?.status === 403 &&
-      (error.response?.data?.code === 'EBADCSRFTOKEN' ||
-        /csrf/i.test(error.response?.data?.message || ''));
+    const isCsrfError =
+      error.response?.status === 403 &&
+      (error.response?.data?.code === "EBADCSRFTOKEN" ||
+        /csrf/i.test(error.response?.data?.message || ""));
 
     if (isCsrfError && originalRequest && !originalRequest._retryCsrf) {
       originalRequest._retryCsrf = true;
       const csrfToken = await fetchCsrfToken();
       if (csrfToken) {
-        originalRequest.headers['x-csrf-token'] = csrfToken;
+        originalRequest.headers["x-csrf-token"] = csrfToken;
         return api(originalRequest);
       }
     }
 
     if (es401 && noReintento && noEsAuth) {
-
       /* ── Si ya hay un refresh en curso → encolar esta petición ──────── */
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -307,15 +317,15 @@ api.interceptors.response.use(
 
       /* ── Iniciar refresh ─────────────────────────────────────────────── */
       originalRequest._retry = true;
-      isRefreshing           = true;
+      isRefreshing = true;
 
       try {
         /* Solicitar nuevo access token usando la cookie httpOnly del refresh */
-        const res      = await api.post('/auth/refresh');
+        const res = await api.post("/auth/refresh");
         const newToken = res.data.token;
 
         /* Persistir el nuevo token y actualizar el header por defecto */
-        localStorage.setItem('token', newToken);
+        localStorage.setItem("token", newToken);
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
 
         /* Resolver todas las peticiones que estaban en espera */
@@ -323,7 +333,6 @@ api.interceptors.response.use(
 
         /* Reintentar la petición original con el nuevo token */
         return api(originalRequest);
-
       } catch (err) {
         /* ── Refresh falló (refresh token expirado o inválido) ──────────
            → Rechazar la cola, limpiar sesión y redirigir a login.
@@ -333,9 +342,9 @@ api.interceptors.response.use(
              automático por sesión expirada.
         ──────────────────────────────────────────────────────────────── */
         processQueue(err, null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
         return Promise.reject(err); // ← salida temprana, sin toast de error
       } finally {
         isRefreshing = false;
@@ -351,24 +360,26 @@ api.interceptors.response.use(
     let message = error.response?.data?.message;
 
     if (!message) {
-      if (error.code === 'ECONNABORTED') {
+      if (error.code === "ECONNABORTED") {
         /* Timeout: el servidor tardó más de 10 segundos en responder */
-        message = 'La petición tardó demasiado. Verifica tu conexión e intenta de nuevo.';
+        message =
+          "La petición tardó demasiado. Verifica tu conexión e intenta de nuevo.";
       } else if (!error.response) {
         /* Sin respuesta del servidor: sin internet o servidor caído */
-        message = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
+        message =
+          "No se pudo conectar con el servidor. Verifica tu conexión a internet.";
       } else {
-        message = error.message || 'Error en la petición.';
+        message = error.message || "Error en la petición.";
       }
     }
 
     /* ── Emitir evento global para que ToastContext muestre el mensaje ─── */
     window.dispatchEvent(
-      new CustomEvent('globalError', { detail: { message } })
+      new CustomEvent("globalError", { detail: { message } }),
     );
 
     return Promise.reject(error);
-  }
+  },
 );
 
 /* ============================================================
@@ -378,40 +389,40 @@ api.interceptors.response.use(
 /**
  * Construye una URL segura con parámetros codificados
  * Previene SSRF sanitizando los parámetros antes de insertarlos
- * 
+ *
  * @example
  * buildUrl('/productos/:id', { id: 123 })  // → '/productos/123'
  * buildUrl('/productos/:id/detalles', { id: 123 })  // → '/productos/123/detalles'
- * 
+ *
  * @param {string} pattern - Patrón de URL con :parametros
  * @param {object} params - Objeto con parámetros
  * @returns {string} URL construida de forma segura
  */
 export const buildUrl = (pattern, params = {}) => {
   let url = pattern;
-  
+
   for (const [key, value] of Object.entries(params)) {
     const sanitizedValue = sanitizeParam(String(value));
     url = url.replace(`:${key}`, sanitizedValue);
   }
-  
+
   // Verificar que después del reemplazo no queden parámetros sin reemplazar
   if (url.match(/:[a-zA-Z]+/)) {
-    console.warn('[SSRF] URL con parámetros faltantes:', url);
+    console.warn("[SSRF] URL con parámetros faltantes:", url);
   }
-  
+
   return url;
 };
 
 /**
  * Valida un ID numérico (función auxiliar común en APIs)
- * 
+ *
  * @param {any} id - ID a validar
  * @param {string} name - Nombre del campo (para error)
  * @returns {number} ID validado
  * @throws {Error} Si el ID no es válido
  */
-export const validateId = (id, name = 'ID') => {
+export const validateId = (id, name = "ID") => {
   const numId = Number(id);
   if (isNaN(numId) || numId <= 0) {
     throw new Error(`${name} inválido`);
