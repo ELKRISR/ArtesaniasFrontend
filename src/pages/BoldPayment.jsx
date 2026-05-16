@@ -14,54 +14,64 @@ function BoldPayment() {
   const [paymentData, setPaymentData] = useState(null);
   const [error, setError] = useState(null);
   const [boldInstance, setBoldInstance] = useState(null);
- const [sdkLoaded, setSdkLoaded] = useState(false);
+  const [sdkLoaded, setSdkLoaded] = useState(false);
   // ============================================================
   // CARGAR SDK DE BOLD
   // ============================================================
   useEffect(() => {
-      const existingScript = document.querySelector(
-        'script[src="https://checkout.bold.co/library/boldPaymentButton.js"]'
-      );
-      const onScriptLoad = () => {
-            // Esperar un microciclo para asegurar que el constructor esté disponible
-            if (window.BoldCheckout) {
-              setSdkLoaded(true);
-            } else {
-              // Si por algún motivo no está, reintentar después de un pequeño delay
-              setTimeout(() => {
-                if (window.BoldCheckout) setSdkLoaded(true);
-                else setError("No se pudo inicializar Bold. Recarga la página.");
-              }, 100);
-            }
+    // Si el SDK ya está cargado, no hacer nada
+    if (window.BoldCheckout) {
+      setSdkLoaded(true);
+      return;
+    }
+
+    const existingScript = document.querySelector(
+      'script[src="https://checkout.bold.co/library/boldPaymentButton.js"]'
+    );
+
+    if (existingScript) {
+      // El script ya existe, esperar a que cargue
+      const checkBoldReady = () => {
+        if (window.BoldCheckout) {
+          setSdkLoaded(true);
+        } else {
+          setTimeout(checkBoldReady, 50);
+        }
       };
-      if (existingScript) {
-      // El script ya está en el DOM, pero ¿ya se ejecutó?
+      checkBoldReady();
+      return;
+    }
+
+    // Crear nuevo script
+    const script = document.createElement('script');
+    script.src = 'https://checkout.bold.co/library/boldPaymentButton.js';
+    script.async = true;
+
+    const handleScriptLoad = () => {
       if (window.BoldCheckout) {
         setSdkLoaded(true);
       } else {
-        // Esperar a que el script existente termine de ejecutarse
-        existingScript.addEventListener('load', onScriptLoad);
-        // Si ya se cargó pero no se disparó el evento, verificamos rápido
-        if (window.BoldCheckout) setSdkLoaded(true);
+        // Reintentar después de un pequeño delay
+        setTimeout(() => {
+          if (window.BoldCheckout) {
+            setSdkLoaded(true);
+          } else {
+            setError("No se pudo inicializar Bold. Recarga la página.");
+          }
+        }, 200);
       }
-      return;
-    }
-    // Cargar el SDK de Bold desde CDN
-    const script = document.createElement('script');
+    };
 
-    script.src = 'https://checkout.bold.co/library/boldPaymentButton.js';
-
-    script.async = true;
-
+    script.onload = handleScriptLoad;
     script.onerror = () => {
       setError('Error cargando el servicio de pago. Por favor, intenta nuevamente.');
       setLoading(false);
     };
+
     document.head.appendChild(script);
 
     return () => {
-      if (existingScript) existingScript.removeEventListener('load', onScriptLoad);
-      // No removemos el script del DOM porque puede ser reutilizado
+      script.onload = null;
     };
   }, []);
 
@@ -69,10 +79,12 @@ function BoldPayment() {
   // CARGAR DATOS DEL PAGO
   // ============================================================
   useEffect(() => {
-    if (!sdkLoaded) return; // ⚠️ Esperar a que el SDK esté disponible
+    if (!sdkLoaded) return;
+
     const loadPaymentIntent = async () => {
       try {
         setLoading(true);
+
         // Verificar referencia
         const pedidoId = referenceId?.split("-")[1];
 
@@ -99,41 +111,36 @@ function BoldPayment() {
           setError(
             "La variable VITE_BOLD_PUBLIC_KEY no está configurada."
           );
-
           setLoading(false);
           return;
         }
 
         setPaymentData(intentData);
+
         // Crear instancia de checkout de Bold
-        const checkout = new BoldCheckout({
+        const checkout = new window.BoldCheckout({
           orderId: intentData.reference_id,
           currency: intentData.amount.currency,
-          amount: intentData.amount.totalAmount.toString(), 
+          amount: intentData.amount.totalAmount.toString(),
           apiKey: import.meta.env.VITE_BOLD_PUBLIC_KEY,
-          integritySignature:
-            intentData.integritySignature,
+          integritySignature: intentData.integritySignature,
           description: intentData.description,
-          redirectionUrl: "https://artesaniaskaterine.com/pago-finalizado" // url de redirección después de pago - para produccion usar la url real del frontend desplegado que tenga https y NO http
+          redirectionUrl: "https://artesaniaskaterine.com/pago-finalizado"
         });
 
         setBoldInstance(checkout);
-            setLoading(false);
-          } catch (err) {
-            console.error("Error cargando pago:", err);
-
-            setError(
-              err.response?.data?.message ||
-                "Error cargando la página de pago"
-            );
-
-            setLoading(false);
-          }
+        setLoading(false);
+      } catch (err) {
+        console.error("Error cargando pago:", err);
+        setError(
+          err.response?.data?.message ||
+            "Error cargando la página de pago"
+        );
+        setLoading(false);
+      }
     };
-    
-    loadPaymentIntent();
-    
 
+    loadPaymentIntent();
   }, [referenceId, sdkLoaded]);
 
   // ============================================================
