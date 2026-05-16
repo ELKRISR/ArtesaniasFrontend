@@ -114,7 +114,7 @@ const onScriptLoad = () => {
           integritySignature:
             intentData.integritySignature,
           description: intentData.description,
-          redirectionUrl: "https://bede-8-242-189-10.ngrok-free.app/pago-finalizado" // url de redirección después de pago - para produccion usar la url real del frontend desplegado que tenga https y NO http
+          redirectionUrl: "/pago-finalizado" // url de redirección después de pago - para produccion usar la url real del frontend desplegado que tenga https y NO http
         });
 
         setBoldInstance(checkout);
