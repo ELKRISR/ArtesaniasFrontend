@@ -48,7 +48,7 @@ export default defineConfig({
 
   // Configuración para desarrollo local (no afecta a Vercel)
   server: {
-    allowedHosts: ["bede-8-242-189-10.ngrok-free.app"], // Permitir el host de ngrok para desarrollo
+    // allowedHosts: ["1da7-8-242-189-4.ngrok-free.app"], // Permitir el host de ngrok para desarrollo
     host: "localhost",
     port: 5173,
     fs: {
