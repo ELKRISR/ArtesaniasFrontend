@@ -19,21 +19,21 @@ function BoldPayment() {
   // CARGAR SDK DE BOLD
   // ============================================================
   useEffect(() => {
-     const existingScript = document.querySelector(
-      'script[src="https://checkout.bold.co/library/boldPaymentButton.js"]'
-    );
-const onScriptLoad = () => {
-      // Esperar un microciclo para asegurar que el constructor esté disponible
-      if (window.BoldCheckout) {
-        setSdkLoaded(true);
-      } else {
-        // Si por algún motivo no está, reintentar después de un pequeño delay
-        setTimeout(() => {
-          if (window.BoldCheckout) setSdkLoaded(true);
-          else setError("No se pudo inicializar Bold. Recarga la página.");
-        }, 100);
-      }
-    };
+      const existingScript = document.querySelector(
+        'script[src="https://checkout.bold.co/library/boldPaymentButton.js"]'
+      );
+      const onScriptLoad = () => {
+            // Esperar un microciclo para asegurar que el constructor esté disponible
+            if (window.BoldCheckout) {
+              setSdkLoaded(true);
+            } else {
+              // Si por algún motivo no está, reintentar después de un pequeño delay
+              setTimeout(() => {
+                if (window.BoldCheckout) setSdkLoaded(true);
+                else setError("No se pudo inicializar Bold. Recarga la página.");
+              }, 100);
+            }
+      };
       if (existingScript) {
       // El script ya está en el DOM, pero ¿ya se ejecutó?
       if (window.BoldCheckout) {
@@ -114,7 +114,7 @@ const onScriptLoad = () => {
           integritySignature:
             intentData.integritySignature,
           description: intentData.description,
-          redirectionUrl: "/pago-finalizado" // url de redirección después de pago - para produccion usar la url real del frontend desplegado que tenga https y NO http
+          redirectionUrl: "https://artesaniaskaterine.com/pago-finalizado" // url de redirección después de pago - para produccion usar la url real del frontend desplegado que tenga https y NO http
         });
 
         setBoldInstance(checkout);
