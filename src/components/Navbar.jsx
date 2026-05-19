@@ -14,6 +14,7 @@ import { CartContext } from "../context/CartContext";
 // 🔐 Hook de autenticación
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/useToast";
+import logo from "../images/logo.jpeg";
 
 function Navbar() {
   // ── Carrito ───────────────────────────────────────────────
@@ -37,13 +38,21 @@ function Navbar() {
   return (
     <nav className="bg-cuero text-white px-6 py-4 flex justify-between items-center shadow-md">
       
-      {/* ── Logo ─────────────────────────────────────────── */}
-      <Link
-        to="/"
-        className="font-serif text-2xl font-bold tracking-wide hover:text-pastel.beige transition"
-      >
-        Artesanías
-      </Link>
+     {/* ── Logo ─────────────────────────────────────────── */}
+<Link
+  to="/"
+  className="flex items-center gap-3 hover:text-pastel.beige transition"
+>
+  <img
+    src={logo}
+    alt="Artesanías Katerine"
+    className="h-12 w-12 rounded-full object-cover"
+  />
+
+  <span className="font-serif text-2xl font-bold tracking-wide">
+    Artesanías Katerine
+  </span>
+</Link>
 
       {/* ── Links ─────────────────────────────────────────── */}
       <div className="flex gap-6 items-center font-sans">

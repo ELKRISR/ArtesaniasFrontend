@@ -147,10 +147,10 @@ function Home() {
       {/* ── HERO ────────────────────────────────────────────────────────── */}
       <section className="text-center py-20 bg-pastel-beige rounded-xl shadow-md">
         <h1 className="text-5xl font-serif font-bold text-cuero-dark mb-6">
-          Artesanías hechas con amor
+          Artesanías únicas que cuentan historias
         </h1>
         <p className="text-body text-lg">
-          Descubre piezas únicas hechas a mano.
+          Piezas hechas a mano con dedicación, tradición y detalles que enamoran.
         </p>
         <div className="mt-6 flex justify-center gap-3 flex-wrap">
           {/* Corrección: <Link> en vez de <a href> para evitar recarga completa */}

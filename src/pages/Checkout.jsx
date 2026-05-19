@@ -17,7 +17,8 @@ function Checkout() {
     email: "",
     direccion: "",
     telefono: "",
-    paymentMethod: "efectivo",
+    paymentMethod: "bold",
+  
   });
 
   const [errors, setErrors] = useState({});
@@ -55,9 +56,9 @@ function Checkout() {
       newErrors.paymentMethod = "Selecciona un método de pago";
     }
 
-    if (formData.paymentMethod === "tarjeta") {
-      // El pago con tarjeta se procesa de forma segura con Bold en el Checkout.
-      // No almacenamos ni validamos datos de tarjeta sensibles en el frontend.
+    if (formData.paymentMethod === "bold") {
+      // El pago con bold se procesa de forma segura con Bold en el Checkout.
+      // No almacenamos ni validamos datos de bold sensibles en el frontend.
     }
 
     setErrors(newErrors);
@@ -141,38 +142,14 @@ function Checkout() {
         })),
       };
 
-      if (formData.paymentMethod === "efectivo") {
-        const response = await api.post("/pedidos", {
-          ...payload,
-          paymentMethod: "efectivo",
-        });
+     
 
-        const pedidoId = response.data?.data?.pedidoId;
-
-        if (!pedidoId) {
-          console.error("No se pudo obtener el ID del pedido:", response.data);
-          showToast("Error interno creando el pedido", "error");
-          return;
-        }
-
-        showToast("Pedido creado correctamente", "success");
-        clearCart();
-        
-        // Track purchase
-        analyticsService.purchase({
-          id: pedidoId,
-          total: total,
-          productos: cartItems
-        });
-        
-        navigate(`/success/${pedidoId}`);
-        return;
-      }
+       
 
       const response = await api.post("/pedidos/bold-session", payload);
       const { paymentUrl, referenceId } = response.data?.data || response.data;
 
-      if (formData.paymentMethod === "tarjeta") {
+      if (formData.paymentMethod === "bold") {
         if (!referenceId) {
           console.error("No se pudo obtener el referenceId de Bold:", response.data);
           showToast("Error interno creando la sesión de pago", "error");
@@ -250,20 +227,19 @@ function Checkout() {
               onChange={handleChange}
               className="w-full border border-slate-300 p-3 rounded-lg focus:border-cuero focus:ring-cuero/30 transition"
             >
-              <option value="efectivo">Efectivo</option>
-              <option value="tarjeta">Tarjeta</option>
+             <option value="bold">Pago seguro con Bold</option>
             </select>
             {errors.paymentMethod && (
               <p className="text-red-500 text-sm mt-1">{errors.paymentMethod}</p>
             )}
           </div>
 
-          {formData.paymentMethod === 'tarjeta' && (
+          {formData.paymentMethod === 'bold' && (
             <div className="rounded-xl border border-cuero/20 bg-cuero/5 p-4 text-sm text-cuero-dark">
-              <p className="font-medium mb-2">Pago con tarjeta seguro</p>
+              <p className="font-medium mb-2">Pago con bold seguro</p>
               <p>
                 Serás redirigido a Bold para completar el pago. En ningún
-                momento almacenamos tus datos de tarjeta en nuestros servidores.
+                momento almacenamos tus datos de bold en nuestros servidores.
               </p>
             </div>
           )}
@@ -275,7 +251,7 @@ function Checkout() {
             {loading && <Spinner size="small" color="white" />}
             {loading
               ? "Procesando..."
-              : formData.paymentMethod === "tarjeta"
+              : formData.paymentMethod === "bold"
               ? "Pagar con Bold"
               : "Confirmar Pedido"}
           </button>

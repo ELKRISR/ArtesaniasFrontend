@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
       manifest: {
-        name: "Artesanías - Tienda Online",
+        name: "Artesanías Katerine - Tienda Online",
         short_name: "Artesanías",
         description: "Tienda online de artesanías colombianas",
         theme_color: "#8b4513",

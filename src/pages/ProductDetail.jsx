@@ -104,10 +104,10 @@ function ProductDetail() {
   useEffect(() => {
     if (!product) return;
 
-    document.title = `${product.nombre} | Artesanías`;
+    document.title = `${product.nombre} | Artesanías Katerine`;
     const descMeta = document.querySelector('meta[name="description"]');
     if (descMeta) {
-      descMeta.content = product.descripcion || 'Descubre artesanías únicas hechas a mano.';
+      descMeta.content = product.descripcion || 'Descubre Artesanías Katerine únicas hechas a mano.';
     }
   }, [product]);
 
